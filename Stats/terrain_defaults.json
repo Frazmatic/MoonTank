@@ -1,0 +1,38 @@
+{
+    "crater": {
+        "image": "Images/Terrain/crater.bmp",
+        "cover_value": 0.5,
+        "drag": 2.0,
+        "coordinates": [
+            0,
+            0
+        ]
+    },
+    "flat": {
+        "image": "Images/Terrain/flat.bmp",
+        "cover_value": 0.0,
+        "drag": 0.0,
+        "coordinates": [
+            0,
+            0
+        ]
+    },
+    "rock": {
+        "image": "Images/Terrain/rock.bmp",
+        "cover_value": 0.9,
+        "drag": 1.0,
+        "coordinates": [
+            0,
+            0
+        ]
+    },
+    "road": {
+        "image": "Images/Terrain/road.bmp",
+        "cover_value": 0.0,
+        "drag": -0.5,
+        "coordinates": [
+            0,
+            0
+        ]
+    }
+}
