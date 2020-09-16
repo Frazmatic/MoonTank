@@ -20,6 +20,7 @@ class Piece():
         self.stats["health"] = 1
         self.stats["image"] = ""        
         Piece.piece_count += 1
+        #this will be used as key for exporting board state to JSON:
         self.stats["id"] = Piece.piece_count
         self.to_rotate = 0
 
@@ -56,7 +57,7 @@ class Piece():
         if rotation_amount != None:
             self.to_rotate = rotation_amount
         else:
-            #None default arg overloads the method for use in self.update()
+            #Having default argument of "None" allows this to act as an 'overloaded' method, for use in self.update()
             self.set_angle(self.stats["angle"] + self.to_rotate)
             self.to_rotate = 0
 
@@ -164,7 +165,11 @@ class Vehicle(Piece):
 
     def add_component(self, component_item):
         if isinstance(component_item, Turret):
+            #prevent multiple turrets appearing in components list
+            if self.turret != None:
+                self.remove_component(component_item)
             self.turret = component_item
+            
         self.stats["components"].append(component_item)  
 
     def remove_component(self, component_item):
@@ -173,21 +178,20 @@ class Vehicle(Piece):
     def change_speed(self, force = 0):
         drag_force = self.get_speed() * self.get_drag_coefficient()
         self.add_speed((force - drag_force) / self.get_mass())
-        #will coast very slowly forever otherwise (because of floating point precision)
-        #also ensures brake doesn't reverse
+        #to ensure this doesn't coast forever with very small float value, and that braking doesn't result in reverse:
         if self.get_speed() < 0.01:
             self.set_speed(0.0)
 
     def update(self, board):
         Piece.update(self, board)
 
-        #add tile drag (I should reformat tiles so it's not a movement_speed mod, it's an added drag)
+        #add tile drag
         for t in board.tiles_sh.get_set_for_coordinates(self.get_coordinates()):
             break
         terrain_drag = t.stats["drag"]
         self.stats["drag coefficient"] = self.stats["base drag"] + terrain_drag
 
-        #update component positions
+        #update component positions and state in this section
         if self.turret != None:
             self.turret.set_coordinates(self.get_coordinates())
             self.turret.update()
@@ -227,7 +231,7 @@ class Turret(Component):
         self.ammo_type = Projectile
         self.shot_counter = 0
 
-    #will override this for non-player turrets
+    #non-player turrets ovveride this method
     def update(self, board = None):
         #this section points turret at mouse
         x1, y1 = self.stats["screen coordinates"]
@@ -312,18 +316,23 @@ class EnemyTurret(Turret):
         for piece in pieces_list:
             if not isinstance(piece, Projectile) and piece is not self:
                  break
-        #need to check this again because if there's only one item in list, piece will be that item
+
+        #if len(list) = 1, piece could be irrelevant type; therefore, double check:
         if not isinstance(piece, Projectile) and piece is not self:
+            #get_pieces_in_range is sorted by distance to self. Nearest valid piece on board is selected as target:
             target = piece.get_coordinates()
             angle_to_target = coord_math.get_relative_angle(self.get_coordinates(), target)
+            #e.g.: self pointed 90° (right). Azimuth to target is 180° (down). 180° - 90° = 90°; that is, directly to right of self:
             relative_angle = (angle_to_target - self.get_angle()) % 360
+            #front:
             if abs(relative_angle) <= 5:
-                #self.set_angle(angle_to_target)
                 self.rotate(random.randrange(-5,5 + 1))
                 self.shoot(target, board)
             else:
+                #left. invervals: (-180°, 0°) and (180°, 360°) are equivalent.
                 if (relative_angle < 0 and relative_angle > -180) or (relative_angle > 180 and relative_angle < 360):
                     self.rotate(-self.stats["rotation speed"])
+                #right:
                 else:
                     self.rotate(self.stats["rotation speed"])
         self.rotate()

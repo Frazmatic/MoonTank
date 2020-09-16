@@ -1,16 +1,14 @@
 import pygame
 import game_pieces
-import coord_math
 
 def initialize():
     info = pygame.display.Info()
     res = (info.current_w, info.current_h)
-    screen = pygame.display.set_mode((1000,1000))
-    #, flags = pygame.FULLSCREEN
+    screen = pygame.display.set_mode(res, flags = pygame.FULLSCREEN)
     pygame.display.set_caption("MoonTank")
     return screen
 
-def show_board(player, view_height, board, screen):
+def show_board(player, view_height, board, screen, image_dict):
     w, h = pygame.display.get_surface().get_size()
     wh_ratio = float(w) / h
     view_width = int(wh_ratio * view_height)
@@ -22,7 +20,7 @@ def show_board(player, view_height, board, screen):
     for t in tiles:
         x, y = t[0]
         tile = t[1]
-        image = pygame.image.load(tile.stats["image"])
+        image = image_dict[tile.stats["image"]]
         
         #drawing y coordinate starts at top instead of bottom
         y = view_height - y - 100

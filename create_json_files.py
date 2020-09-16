@@ -1,3 +1,8 @@
+'''
+A utility file to get the initial JSON values created.
+Should no longer need to be used.
+'''
+
 import json
 
 def create_terrain_dict():

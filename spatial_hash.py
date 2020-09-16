@@ -1,19 +1,19 @@
 from math import sin, cos, radians
+from collections import defaultdict
 
 class SpatialHash():
     def __init__(self, bucket_diameter):
         self.bucket_diameter = bucket_diameter
-        self.buckets = {}
+        self.buckets = defaultdict(set)
 
     def hash(self, coordinate):
         #(x, y)
-        return (int(coordinate[0] / self.bucket_diameter), int(coordinate[1] / self.bucket_diameter))
+        return (int(coordinate[0] // self.bucket_diameter), int(coordinate[1] // self.bucket_diameter))
 
     #tiles work a bit differently. Their coordinates are for bottom left, not center, and they have
     #same width as the buckets. Ideally one tile per bucket; exceptions possible if needed.
     def add_tile(self, tile):
-        #using setdefault() so have empty set to add to if doesn't exist yet
-        self.buckets.setdefault(self.hash(tile.get_coordinates()), set()).add(tile)
+        self.buckets[self.hash(tile.get_coordinates())].add(tile)
 
     #2-dimensional rectangular pieces may be overlapping buckets, and may be rotated
     #I could just use the larger of w or h, but thought it would be interesting to do the math
@@ -21,8 +21,8 @@ class SpatialHash():
         x, y = piece.get_coordinates()
         w, h = piece.get_dimensions()
         angle = radians(piece.get_angle())
-        x_term = (abs(sin(angle) * h) + abs(cos(angle) * w))/2
-        y_term = (abs(sin(angle) * w) + abs(cos(angle) * h))/2
+        x_term = (abs(sin(angle) * h) + abs(cos(angle) * w))//2
+        y_term = (abs(sin(angle) * w) + abs(cos(angle) * h))//2
         x_min = int(x - x_term)
         x_max = int(x + x_term)
         y_min = int(y - y_term)
@@ -38,7 +38,7 @@ class SpatialHash():
     def add_piece(self, piece):
         keys = self.bucket_list(piece)
         for key in keys:
-            self.buckets.setdefault(key, set()).add(piece)
+            self.buckets[key].add(piece)
 
     def remove_piece(self, piece):
         keys = self.bucket_list(piece)
@@ -49,12 +49,12 @@ class SpatialHash():
         keys = self.bucket_list(piece)
         output = set()
         for key in keys:
-            output = output.union(self.buckets.setdefault(key, set()))
+            output = output.union(self.buckets[key])
         return output
 
     def get_set_for_coordinates(self, coord):
         #using setdefault() so that I get empty sets instead of key errors if checking nonexistent keys
-        return self.buckets.setdefault(self.hash(coord),set())
+        return self.buckets[self.hash(coord)]
 
 def main():
     #testing area
