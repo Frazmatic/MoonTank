@@ -1,7 +1,9 @@
 from math import sin, cos, radians
+
+#faster than using setdefault() with a regular dict; prevents key errors
 from collections import defaultdict
 
-class SpatialHash():
+class SpatialHash:
     def __init__(self, bucket_diameter):
         self.bucket_diameter = bucket_diameter
         self.buckets = defaultdict(set)
@@ -13,14 +15,14 @@ class SpatialHash():
     #tiles work a bit differently. Their coordinates are for bottom left, not center, and they have
     #same width as the buckets. Ideally one tile per bucket; exceptions possible if needed.
     def add_tile(self, tile):
-        self.buckets[self.hash(tile.get_coordinates())].add(tile)
+        self.buckets[self.hash(tile.coordinates)].add(tile)
 
     #2-dimensional rectangular pieces may be overlapping buckets, and may be rotated
     #I could just use the larger of w or h, but thought it would be interesting to do the math
     def bucket_list(self, piece):
-        x, y = piece.get_coordinates()
-        w, h = piece.get_dimensions()
-        angle = radians(piece.get_angle())
+        x, y = piece.coordinates
+        w, h = piece.dimensions
+        angle = radians(piece.angle)
         x_term = (abs(sin(angle) * h) + abs(cos(angle) * w))//2
         y_term = (abs(sin(angle) * w) + abs(cos(angle) * h))//2
         x_min = int(x - x_term)

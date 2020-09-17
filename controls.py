@@ -9,9 +9,9 @@ def keyboard(player, board):
     if keys[kbd.K_s]:
         player.brake_on = True
     if keys[kbd.K_a]:
-        player.rotate(-player.stats["rotation speed"])
+        player.rotate(-player.rotation_speed)
     if keys[kbd.K_d]:
-        player.rotate(player.stats["rotation speed"])
+        player.rotate(player.rotation_speed)
     if keys[kbd.K_ESCAPE]:
         pygame.quit()
         return False

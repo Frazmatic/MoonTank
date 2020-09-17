@@ -1,8 +1,17 @@
 import random
+import json
 
-class Tile():
+class Tile:
+
+    #per Python ref, "__slots__ allow us to explicitly declare data members (like properties)
+    #and deny the creation of __dict__ and __weakref__". Useful for contexts like this in which
+    #I may have millions of instances with a few attributes each; saves memory.
+    __slots__ = ['category', 'image', 'cover_value', 'drag', 'coordinates']
+    with open("Stats/terrain_defaults.json", mode = "r") as f:
+        stats_dict = json.loads(f.read())
+
     #stats dict is loaded from a json file so that stats can be stored elsewhere
-    def __init__(self, coordinate, stats_dict, category = None):
+    def __init__(self, coordinate, category = None):
         if category != None:
             self.category = category
         else:
@@ -15,40 +24,26 @@ class Tile():
                 self.category = "rock"
             else:
                 self.category = "road"
-        self.stats = stats_dict[self.category].copy()
-        #coordinate represents bottom left of tile, tuple (x, y)
-        self.stats["coordinates"] = coordinate
 
-    def get_category(self):
-        return self.category
-    
-    def get_coordinates(self):
-        return self.stats["coordinates"]
+        self.image = Tile.stats_dict[self.category]["image"]
+        self.cover_value = Tile.stats_dict[self.category]["cover_value"]
+        self.drag = Tile.stats_dict[self.category]["drag"]
+        self.coordinates = coordinate
 
-    def get_x(self):
-        return self.get_coordinates()[0]
+    @property
+    def x(self):
+        return self.coordinates[0]
 
-    def get_y(self):
-        return self.get_coordinates()[1]
-
-    def get_cover_value(self):
-        return self.stats["cover_value"]
-
-    def get_movement_speed_modifier(self):
-        return self.stats["movement speed"]
+    @property
+    def y(self):
+        return self.coordinates[1]
 
     def __str__(self):
         return "coordinates: {} \tcategory: {}".format(self.stats["coordinates"], self.category)
 
 def main():
     #testing:
-    import json
-    with open("Stats/terrain_defaults.json", mode = "r") as f:
-        terrains = json.loads(f.read())
-    t = Tile((0,0),terrains, "flat")
-    t_list = [Tile((i,0),terrains) for i in range(50)]
-    for tile in t_list:
-        print(tile)
+    pass
 if __name__ == "__main__":
     main()
 

@@ -1,0 +1,53 @@
+{
+    "BasicBullet": {
+        "image": "Images/Projectile/basic_bullet.bmp",
+        "dimensions": [
+	    3,
+	    3
+	],
+        "mass": 1.0,
+	"health": 1,
+	"cycle_time": 5,
+	"damage": 2,
+	"speed": 10
+    },
+    "BasicVehicle": {
+        "image": "Images/Vehicles/basic_vehicle.bmp",
+	"dimensions": [
+	    25,
+	    25
+	],
+	"mass": 30.0,
+	"health": 100,
+	"rotation_speed": 3,
+	"battery": 1500,
+	"base_drag": 0.65,
+	"motor_force": 3,
+	"brake_force": 3,
+	"turret category": "BasicTurret"  
+    },
+    "BasicTurret": {
+	"image": "Images/Components/basic_turret.bmp",
+	"dimensions": [
+	    13,
+	    25
+	],
+	"mass": 30.0,
+	"health": 100,
+	"ammo": 300,
+	"ammo_type": "BasicBullet"
+    },
+    "EnemyTurret": {
+	"image": "Images/Components/basic_turret.bmp",
+	"dimensions": [
+	    13,
+	    25
+	],
+	"mass": 5.0,
+	"health": 10,
+	"ammo": 300,
+	"range": 300,
+	"rotation_speed": 2,
+	"ammo_type": "BasicBullet"	
+    }
+}

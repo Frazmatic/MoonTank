@@ -1,67 +1,86 @@
 import pygame
+import json
+
+#I wrote this:
 import game_pieces
 
-def initialize():
-    info = pygame.display.Info()
-    res = (info.current_w, info.current_h)
-    screen = pygame.display.set_mode(res, flags = pygame.FULLSCREEN)
-    pygame.display.set_caption("MoonTank")
-    return screen
+class Display:
 
-def show_board(player, view_height, board, screen, image_dict):
-    w, h = pygame.display.get_surface().get_size()
-    wh_ratio = float(w) / h
-    view_width = int(wh_ratio * view_height)
-    #used to scale up images; view width/height relative to screen width/height
-    x_scale_ratio, y_scale_ratio = float(w) / view_width, float(h) / view_height 
-    tiles, pieces = board.get_sub_section_lists(player.get_coordinates(), view_width, view_height)
+    with open("Stats/terrain_defaults.json", mode = "r") as f:
+        tile_stats_dict = json.loads(f.read())
 
-    screen.fill((0,0,0))
-    for t in tiles:
-        x, y = t[0]
-        tile = t[1]
-        image = image_dict[tile.stats["image"]]
+    image_dict = {}
+    for stats in tile_stats_dict.values():
+        filename = stats["image"]
+        image = pygame.image.load(filename)
+        image_dict[filename] = image
+
+    def __init__(self, player, view_height, board):
+        info = pygame.display.Info()
+        self.res = (info.current_w, info.current_h)
+        self.screen = pygame.display.set_mode(self.res, flags = pygame.FULLSCREEN)
+        self.player = player
+        self.view_height = view_height
+        self.board = board
+
+        self.w, self.h = pygame.display.get_surface().get_size()
+        self.wh_ratio = float(self.w) / self.h
+        self.view_width = int(self.wh_ratio * self.view_height)
+        #used to scale up images; view width/height relative to screen width/height
+        self.x_scale_ratio, self.y_scale_ratio = float(self.w) / self.view_width, float(self.h) / self.view_height 
+        pygame.display.set_caption("MoonTank")
+
+    def show_board(self):
         
-        #drawing y coordinate starts at top instead of bottom
-        y = view_height - y - 100
+        #tiles & pieces are both lists of lists. list[0] are coordinates, list[1] are the objects
+        tiles, pieces = self.board.get_sub_section_lists(self.player.coordinates, self.view_width, self.view_height)
 
-        x *= x_scale_ratio
-        y *= y_scale_ratio
+        self.screen.fill((0,0,0))
+        for t in tiles:
+            x, y = t[0]
+            tile = t[1]
+            image = Display.image_dict[tile.image]
+            
+            #drawing y coordinate starts at top instead of bottom
+            y = self.view_height - y - 100
 
-        #scale up image size
-        image_width, image_height = int(image.get_width() * x_scale_ratio), int(image.get_height() * y_scale_ratio)
-        image = pygame.transform.scale(image, (image_width, image_height))
+            x *= self.x_scale_ratio
+            y *= self.y_scale_ratio
 
-        screen.blit(image, (x, y))
+            #scale up image size
+            image_width, image_height = int(image.get_width() * self.x_scale_ratio), int(image.get_height() * self.y_scale_ratio)
+            image = pygame.transform.scale(image, (image_width, image_height))
 
-    for p in pieces:
-        x, y = p[0]
-        piece = p[1]
-        
-        image = pygame.image.load(piece.stats["image"])
+            self.screen.blit(image, (x, y))
 
-        y = view_height - y
+        for p in pieces:
+            x, y = p[0]
+            piece = p[1]
 
-        x *= x_scale_ratio
-        y *= y_scale_ratio
+            #this lets me load the file only once; after that it's in dict
+            image = Display.image_dict.setdefault(piece.image, pygame.image.load(piece.image))
 
-        image_width, image_height = int(image.get_width() * x_scale_ratio), int(image.get_height() * y_scale_ratio)
-        image = pygame.transform.scale(image, (image_width, image_height))
+            y = self.view_height - y
 
-        image = pygame.transform.rotate(image, 360 - piece.stats["angle"])
+            x *= self.x_scale_ratio
+            y *= self.y_scale_ratio
 
-        x -= image.get_width() // 2
-        y -= image.get_height() // 2
+            image_width, image_height = int(image.get_width() * self.x_scale_ratio), int(image.get_height() * self.y_scale_ratio)
+            image = pygame.transform.scale(image, (image_width, image_height))
 
-        piece.stats["screen coordinates"] = (x, y)
+            image = pygame.transform.rotate(image, 360 - piece.angle)
 
-        image.set_alpha(None)
-        image.set_colorkey((255,255,255))
+            x -= image.get_width() // 2
+            y -= image.get_height() // 2
 
-        screen.blit(image, (x, y))
+            piece.screen_coordinates = (x, y)
 
+            image.set_alpha(None)
+            image.set_colorkey((255,255,255))
 
-    pygame.display.flip()
+            self.screen.blit(image, (x, y))
+
+        pygame.display.flip()
 
         
         

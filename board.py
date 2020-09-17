@@ -1,21 +1,20 @@
 from spatial_hash import SpatialHash
 import bin_search_add
 from tile import Tile
-import coord_math
+from coord_math import Coordinates
 
 class Board():
-    def __init__(self, w, h, tiles_dict):
+    def __init__(self, w, h):
         #for processing updates
         self.pieces_l = []
         #for collision detection, display, etc
         self.pieces_sh = SpatialHash(100)
         self.tiles_sh = SpatialHash(100)
-        self.tiles_stats = tiles_dict
         self.w = w
         self.h = h
         for x in range(0, w, 100):
             for y in range(0, h, 100):
-                self.tiles_sh.add_tile(Tile((x, y), tiles_dict))
+                self.tiles_sh.add_tile(Tile((x, y)))
 
     def add_tile(self, tile):
         #reminder: one tile per key in this hash-map
@@ -24,7 +23,7 @@ class Board():
 
     def add_piece(self, piece):
         #keeps pieces list sorted which may be useful in future
-        bin_search_add.bin_insert(self.pieces_l, piece, lambda p: p.get_coordinates())
+        bin_search_add.bin_insert(self.pieces_l, piece, lambda p: p.coordinates)
         self.pieces_sh.add_piece(piece)
 
     def remove_piece(self, piece):
@@ -33,7 +32,7 @@ class Board():
 
     #may not need this since add_pice() keeps it sorted, by just in case:
     def sort_pieces(self):
-        self.pieces_l = sorted(self.pieces_l, key = lambda p: p.get_coordinates())
+        self.pieces_l = sorted(self.pieces_l, key = lambda p: p.coordinates)
 
     #by only getting relevant buckets, we reduce runtime from all items to just
     #items on or near screen
@@ -67,14 +66,14 @@ class Board():
         pieces_output = []
         for tile in tiles_set:
             # (low_x, low_y) are (0, 0) for this subsection
-            new_c = (tile.get_x() - low_x, tile.get_y() - low_y)
+            new_c = (tile.x - low_x, tile.y - low_y)
             tiles_output.append((new_c, tile))
         for piece in pieces_set:
-            new_c = (piece.get_x() - low_x, piece.get_y() - low_y)
+            new_c = (piece.x - low_x, piece.y - low_y)
             pieces_output.append((new_c, piece))
-            if "components" in piece.stats:
-                for comp in piece.get_components():
-                    new_c = (comp.get_x() - low_x, comp.get_y() - low_y)
+            if hasattr(piece, "components"):
+                for comp in piece.components:
+                    new_c = (comp.x - low_x, comp.y - low_y)
                     pieces_output.append((new_c, comp))
 
         return (tiles_output, pieces_output)
@@ -94,13 +93,13 @@ class Board():
             pieces_set = pieces_set.union(self.pieces_sh.get_set_for_coordinates(c))
         pieces_list = list(pieces_set)
         #return list sorted by distance to center
-        pieces_list = sorted(pieces_list, key = lambda piece: coord_math.get_distance(center_coord, piece.get_coordinates()))
+        pieces_list = sorted(pieces_list, key = lambda piece: Coordinates.get_distance(center_coord, piece.coordinates))
         return pieces_list
         
     def update(self):
         remove_list = []
         for p in self.pieces_l:
-            if p.stats["health"] <= 0:
+            if p.health <= 0:
                 remove_list.append(p)
                 continue
             p.update(self)
@@ -109,25 +108,7 @@ class Board():
             
 def main():
     #testing goes here:
-    import json
-    with open("Stats/terrain_defaults.json", mode = 'r') as f:
-        terrain_stats = json.loads(f.read())
-
-
-    b = Board(10000, 10000, terrain_stats)
-    #print(b.tiles_sh.buckets)
-
-    import game_pieces
-    p = game_pieces.BasicVehicle((5000,5000))
-    b.add_piece(p)
-    s = b.pieces_sh.get_set_for_piece(p)
-    assert len(s) == 1
-    l = b.pieces_sh.bucket_list(p)
-    assert len(l) == 4
-    assert len(b.pieces_sh.buckets) >= len(l)
-    
-    display_list = b.get_sub_section_lists(p.get_coordinates(), 2000, 1000)
-    print(len(display_list[0]))    
+    pass
     
 if __name__ == "__main__":
     main()
