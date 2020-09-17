@@ -1,10 +1,10 @@
 from math import sin, cos, radians
 import json
-
-#I wrote these:
-from coord_math import Coordinates
 import pygame
 import random
+
+#I wrote:
+from coord_math import Coordinates
 
 class Piece:
     piece_count = 0

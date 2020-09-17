@@ -1,3 +1,4 @@
+#I wrote these:
 from spatial_hash import SpatialHash
 import bin_search_add
 from tile import Tile

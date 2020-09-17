@@ -1,7 +1,6 @@
 import pygame
 import pygame.locals as kbd
 
-#eventually should replace this with player defined variables for custom controls
 def keyboard(player, board):
     keys = pygame.key.get_pressed()
     if keys[kbd.K_w]:

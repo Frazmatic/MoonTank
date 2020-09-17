@@ -1,6 +1,5 @@
 from math import sin, cos, radians
-
-#faster than using setdefault() with a regular dict; prevents key errors
+#faster than using setdefault() with a regular dict; prevents key errors:
 from collections import defaultdict
 
 class SpatialHash:
