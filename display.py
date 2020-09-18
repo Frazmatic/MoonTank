@@ -6,11 +6,19 @@ import game_pieces
 
 class Display:
 
+    #class variables holding image objects for rendering:
     with open("Stats/terrain_defaults.json", mode = "r") as f:
         tile_stats_dict = json.loads(f.read())
+    with open("Stats/piece_defaults.json", mode = "r") as f:
+        piece_stats_dict = json.loads(f.read())
 
+    #combined dict associating names with image objects:
     image_dict = {}
     for stats in tile_stats_dict.values():
+        filename = stats["image"]
+        image = pygame.image.load(filename)
+        image_dict[filename] = image
+    for stats in piece_stats_dict.values():
         filename = stats["image"]
         image = pygame.image.load(filename)
         image_dict[filename] = image
@@ -26,7 +34,7 @@ class Display:
         self.w, self.h = pygame.display.get_surface().get_size()
         self.wh_ratio = float(self.w) / self.h
         self.view_width = int(self.wh_ratio * self.view_height)
-        #used to scale up images; view width/height relative to screen width/height
+        #used to scale up images; view width/height is relative to screen width/height
         self.x_scale_ratio, self.y_scale_ratio = float(self.w) / self.view_width, float(self.h) / self.view_height 
         pygame.display.set_caption("MoonTank")
 
@@ -41,7 +49,7 @@ class Display:
             tile = t[1]
             image = Display.image_dict[tile.image]
             
-            #drawing y coordinate starts at top instead of bottom
+            #screen y coordinate starts at top instead of bottom
             y = self.view_height - y - 100
 
             x *= self.x_scale_ratio
@@ -57,8 +65,7 @@ class Display:
             x, y = p[0]
             piece = p[1]
 
-            #this lets me load the file only once; after that it's in dict
-            image = Display.image_dict.setdefault(piece.image, pygame.image.load(piece.image))
+            image = Display.image_dict[piece.image]
 
             y = self.view_height - y
 

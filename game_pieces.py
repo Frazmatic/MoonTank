@@ -22,7 +22,7 @@ class Piece:
         self.dimensions = (0, 0)
         self.speed = 0
         self.__angle = 0
-        self.__mass = 0.0
+        self.mass = 0.0
         self.health = 1
         self.image = ""        
         Piece.piece_count += 1
@@ -64,14 +64,6 @@ class Piece:
             self.angle = self.__angle + self.to_rotate
             self.to_rotate = 0
 
-    @property
-    def mass(self):
-        return self.__mass
-
-    @mass.setter
-    def mass(self, mass):
-        self.__mass = mass
-
     def move(self):
         self.coordinates = Coordinates.translate(self.coordinates, self.angle, self.speed)       
 
@@ -98,7 +90,7 @@ class Vehicle(Piece):
 
         stats = Piece.stats_dict[self.category]
         self.dimensions = stats["dimensions"] 
-        self.mass = stats["mass"]
+        self.__mass = stats["mass"]
         self.health = stats["health"]
         self.rotation_speed = stats["rotation_speed"]
         self.image = stats["image"]
