@@ -1,3 +1,5 @@
+"""Game pieces are active objects on the board; those which can move, attack, be destroyed or picked up, etc"""
+
 from math import sin, cos, radians
 import json
 import pygame
@@ -7,11 +9,13 @@ import random
 from coord_math import Coordinates
 
 class Piece:
+    """Abstract class representing all active objects on board."""
     piece_count = 0
+    #class variable which stores default stats for all pieces, loaded from a json file
     with open("Stats/piece_defaults.json", mode = "r") as f:
         stats_dict = json.loads(f.read())
     
-    def __init__(self, coordinates, category):
+    def __init__(self, coordinates: tuple, category: str):
         self.category = category
         #storing stats in dictionary allows output to file such as JSON, storing & editing outside of code
         #(x, h)
@@ -32,6 +36,7 @@ class Piece:
 
     @property
     def x(self):
+        """Allows dot notation access of x coordinate, implemented for clarity and code concision."""
         return self.coordinates[0]
 
     @property
@@ -52,22 +57,30 @@ class Piece:
     
     @angle.setter
     def angle(self, angle):
+        """ensures any update to angle instance variable is bound within 0 to 360 range of values"""
         self.__angle = angle % 360
 
     ##issue: calling rotate before update() will result in removal from wrong buckets
     ##solution: queue the change; actually call set_angle() during update()
     def rotate(self, rotation_amount = None):
+        """Changes piece angle
+
+        Since we're utilizing a spatial hash to store pieces, must not change angle state before update(), or piece will be in wrong buckets.
+        This problem is avoided by by storing the change, then processing it during update.
+        """
         if rotation_amount != None:
             self.to_rotate = rotation_amount
         else:
-            #Having default argument of "None" allows this to act as an 'overloaded' method, for use in self.update()
+            #Having default argument of "None" allows this to act like an 'overloaded' method, for use in self.update()
             self.angle = self.__angle + self.to_rotate
             self.to_rotate = 0
 
     def move(self):
+        """for use in update(), changes piece's coordinates according to piece's angle & speed variable values"""
         self.coordinates = Coordinates.translate(self.coordinates, self.angle, self.speed)       
 
-    def update(self, board):
+    def update(self, board) -> None:
+        """Called by Board every cycle, updates piece state"""
         board.remove_piece(self)
         self.rotate()
         self.move()
@@ -77,8 +90,9 @@ class Piece:
         return str(type(self))
 
 class Vehicle(Piece):
+    """The basic unit of the game, can move and has components"""
     
-    def __init__(self, coordinates, category):
+    def __init__(self, coordinates: tuple, category: str):
         Piece.__init__(self, coordinates, category)
         self.drag_coefficient = 0
         self.components = []
@@ -102,17 +116,18 @@ class Vehicle(Piece):
 
     @property
     def mass(self):
-        #this override includes mass of components for purposes of accell/decell
+        """Vehicle masses should include mass of components. Allows . notation access while ensuring component masses included"""
         tot_mass = 0
         for c in self.components:
             tot_mass += c.mass
         return self.__mass + tot_mass
 
     @mass.setter
-    def mass(self, mass):
+    def mass(self, mass: float) -> None:
         self.__mass = mass
 
     def add_component(self, component_item):
+        """There are component 'slots' represented by member variables, as well as a list of all components on the vehicle for use in calculations"""
         if isinstance(component_item, Turret):
             #prevent multiple turrets appearing in components list
             if self.turret != None:
@@ -125,7 +140,10 @@ class Vehicle(Piece):
         self.components.remove(component_item)
 
     def change_speed(self, force = 0):
-        
+        """Given a motive force, change speed considering drag/friction & mass
+
+        Will gradually slow to halt due to drag if no force given
+        """
         drag_force = self.speed * self.drag_coefficient
         self.speed += (force - drag_force) / self.mass
         #to ensure this doesn't coast forever with very small float value, and that braking doesn't result in reverse:
@@ -153,6 +171,7 @@ class Vehicle(Piece):
         self.brake_on = False
 
 class Projectile(Piece):
+    """Overall weapon ammo type; instances are one of several categories"""
     def __init__(self, coordinates, category):
         Piece.__init__(self, coordinates, category)
        
@@ -178,6 +197,7 @@ class Projectile(Piece):
             self.health = 0
 
 class Turret(Piece):
+    """Basic weapon of the game, should always be attached to a vehicle"""
     def __init__(self, coordinates, category):
         Piece.__init__(self, coordinates, category)
         self.shot_counter = 0
@@ -203,6 +223,7 @@ class Turret(Piece):
         self.ammo_type = projectile_class
 
     def shoot(self, board):
+        """Creates a projectile object, sets to correct angle for turret, adds to board"""
         bullet = Projectile(self.coordinates, self.ammo_type)
         if self.ammo > 0:
             bullet.angle = self.angle
@@ -211,6 +232,7 @@ class Turret(Piece):
             board.add_piece(bullet)
 
 class EnemyTurret(Turret):
+    """Sub-class of Turret with AI control"""
     def __init__(self, coordinates):
         Turret.__init__(self, coordinates, "EnemyTurret")
 

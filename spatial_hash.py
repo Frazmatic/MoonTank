@@ -1,3 +1,8 @@
+"""Utilizing a spatial-hash rather than array saves complexity and runtime for display, collicsion detection, etc.
+
+Maps each coordinate to a cell. Two-dimensional objects can cross cell borders and are therefore
+added to or removed from multiple cells (buckets).
+"""
 from math import sin, cos, radians
 #faster than using setdefault() with a regular dict; prevents key errors:
 from collections import defaultdict
@@ -19,6 +24,7 @@ class SpatialHash:
     #2-dimensional rectangular pieces may be overlapping buckets, and may be rotated
     #I could just use the larger of w or h, but thought it would be interesting to do the math
     def bucket_list(self, piece):
+        """returns all key values relevant to a piece on the board"""
         x, y = piece.coordinates
         w, h = piece.dimensions
         angle = radians(piece.angle)
@@ -47,6 +53,7 @@ class SpatialHash:
             self.buckets[key].remove(piece)
 
     def get_set_for_piece(self, piece):
+        """finds all pieces occupying the same buckets as given piece"""
         keys = self.bucket_list(piece)
         output = set()
         for key in keys:
@@ -54,11 +61,11 @@ class SpatialHash:
         return output
 
     def get_set_for_coordinates(self, coord):
-        #using setdefault() so that I get empty sets instead of key errors if checking nonexistent keys
+        """returns pieces for a given coordinate"""
         return self.buckets[self.hash(coord)]
 
 def main():
-    #testing area
+    """testing goes here"""
     import json
     from tile import Tile
     with open("Stats/terrain_defaults.json", mode = 'r') as f:

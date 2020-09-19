@@ -1,3 +1,5 @@
+"""Creates screen with desktop resolution, handles output to screen"""
+
 import pygame
 import json
 
@@ -5,14 +7,16 @@ import json
 import game_pieces
 
 class Display:
+    """Creates screen surface, draws to it."""
 
-    #class variables holding image objects for rendering:
+    #class variables holding filename information for each object's image
     with open("Stats/terrain_defaults.json", mode = "r") as f:
         tile_stats_dict = json.loads(f.read())
     with open("Stats/piece_defaults.json", mode = "r") as f:
         piece_stats_dict = json.loads(f.read())
 
-    #combined dict associating names with image objects:
+    #combined dict associating names with image objects, preloads images:
+    #class variable holding image objects for rendering:
     image_dict = {}
     for stats in tile_stats_dict.values():
         filename = stats["image"]
@@ -23,7 +27,8 @@ class Display:
         image = pygame.image.load(filename)
         image_dict[filename] = image
 
-    def __init__(self, player, view_height, board):
+    def __init__(self, player, view_height: int, board):
+        """Create screen and calculate relevant stats to draw in correct positions and sizes."""
         info = pygame.display.Info()
         self.res = (info.current_w, info.current_h)
         self.screen = pygame.display.set_mode(self.res, flags = pygame.FULLSCREEN)
@@ -38,7 +43,8 @@ class Display:
         self.x_scale_ratio, self.y_scale_ratio = float(self.w) / self.view_width, float(self.h) / self.view_height 
         pygame.display.set_caption("MoonTank")
 
-    def show_board(self):
+    def show_board(self) -> None:
+        """Utilizes class variables and player position to find tiles & pieces in view area; draw them"""
         
         #tiles & pieces are both lists of lists. list[0] are coordinates, list[1] are the objects
         tiles, pieces = self.board.get_sub_section_lists(self.player.coordinates, self.view_width, self.view_height)

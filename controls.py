@@ -1,7 +1,15 @@
+"""Handles playe input
+
+Functions:
+
+keyboard
+events
+"""
 import pygame
 import pygame.locals as kbd
 
-def keyboard(player, board):
+def keyboard(player, board) -> bool:
+    """keyboard input is continuous, just checks state of pressed keys"""
     keys = pygame.key.get_pressed()
     if keys[kbd.K_w]:
         player.accel_on = True
@@ -16,7 +24,8 @@ def keyboard(player, board):
         return False
     return True
 
-def events(player, board, event):
+def events(player, board, event) -> None:
+    """Mouse button input is event based"""
     if event.type == pygame.MOUSEBUTTONDOWN:
         if event.button == 1:
             player.turret.shoot(board)

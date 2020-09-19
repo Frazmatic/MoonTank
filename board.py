@@ -1,11 +1,18 @@
-#I wrote these:
+"""The primary logic for the game. Tracks all tiles & pieces, ensures they
+are processed appropiately.
+
+Classes:
+Board
+"""
 from spatial_hash import SpatialHash
 import bin_search_add
 from tile import Tile
 from coord_math import Coordinates
 
 class Board():
-    def __init__(self, w, h):
+    """Stores the collections of tiles and pieces, and performs operations on them."""
+    def __init__(self, w: int, h: int):
+        """Accepts width & height values, generates tiles appropriately."""
         #for processing updates
         self.pieces_l = []
         #for collision detection, display, etc
@@ -17,30 +24,26 @@ class Board():
             for y in range(0, h, 100):
                 self.tiles_sh.add_tile(Tile((x, y)))
 
-    def add_tile(self, tile):
-        #reminder: one tile per key in this hash-map
-        #note: this means the json method can just use the list of keys
+    def add_tile(self, tile: Tile) -> None:
         self.tiles_sh.add_tile(tile)
 
-    def add_piece(self, piece):
-        #keeps pieces list sorted which may be useful in future
+    def add_piece(self, piece) -> None:
+        """Adds a piece to the piece spatial-hash and the piece list
+
+        Maintains sorted order for the piece list.
+        """
         bin_search_add.bin_insert(self.pieces_l, piece, lambda p: p.coordinates)
         self.pieces_sh.add_piece(piece)
 
-    def remove_piece(self, piece):
+    def remove_piece(self, piece) -> None:
         self.pieces_l.remove(piece)
         self.pieces_sh.remove_piece(piece)
 
-    #may not need this since add_pice() keeps it sorted, by just in case:
-    def sort_pieces(self):
-        self.pieces_l = sorted(self.pieces_l, key = lambda p: p.coordinates)
 
-    #by only getting relevant buckets, we reduce runtime from all items to just
-    #items on or near screen
-    def get_sub_section_lists(self, center_coord, width, height):
+    def get_sub_section_lists(self, center_coord: tuple, width: int, height: int) -> tuple:
         """
-        Returns tuple (tiles_list, pieces_list). Each entry in a list is (screen_coordinate, the_object)
-        Used to get screen output for a section of the game board.
+        Returns tuple (tiles_list, pieces_list). Each entry in a list is (screen_coordinate, the_object).
+        Used to get screen output for a section of the game board or find pieces in a given area.
         """
 
         #define rectangular area around center coordinates
@@ -61,7 +64,7 @@ class Board():
             tiles_set = tiles_set.union(self.tiles_sh.get_set_for_coordinates(c))
             pieces_set = pieces_set.union(self.pieces_sh.get_set_for_coordinates(c))
         
-        #added adjsuted coordinates for each item, relative to subsection
+        #added adjusted coordinates for each item, relative to subsection
         #append to output lists
         tiles_output = []
         pieces_output = []
@@ -79,7 +82,11 @@ class Board():
 
         return (tiles_output, pieces_output)
 
-    def get_pieces_in_range(self, center_coord, distance):
+    def get_pieces_in_range(self, center_coord: tuple, distance: int) -> list:
+        """Finds all pieces within a given range of a coordinate.
+
+        List of pieces returned is sorted by distance.
+        """
         #define rectangular area around center coordinates
         low_x, low_y = center_coord[0] - (distance //2), center_coord[1] - (distance // 2)
         top_x, top_y = low_x + distance, low_y + distance
@@ -98,6 +105,10 @@ class Board():
         return pieces_list
         
     def update(self):
+        """Processes all pieces on board.
+
+        Calls update for all live pieces. Removes dead pieces.
+        """
         remove_list = []
         for p in self.pieces_l:
             if p.health <= 0:
@@ -108,7 +119,7 @@ class Board():
             self.remove_piece(p)
             
 def main():
-    #testing goes here:
+    """testing goes here"""
     pass
     
 if __name__ == "__main__":

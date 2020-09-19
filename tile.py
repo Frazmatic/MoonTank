@@ -1,3 +1,4 @@
+"""The basic map component for the game. Used for display, calculating ground drag/friction, cover values for projectile chance of impact"""
 import random
 import json
 
